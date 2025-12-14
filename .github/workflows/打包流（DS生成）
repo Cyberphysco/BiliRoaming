@@ -1,0 +1,41 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ "main", "master" ] # 在推送到主分支时触发
+  pull_request:
+    branches: [ "main", "master" ] # 在针对主分支的PR时触发
+  workflow_dispatch: # 允许在GitHub网页上手动触发工作流
+
+jobs:
+  build:
+    runs-on: ubuntu-latest # 使用最新的Ubuntu系统作为构建环境
+
+    steps:
+    # 1. 拉取仓库代码
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # 2. 设置Java开发环境（Android开发通常需要JDK 11或17）
+    - name: Set up JDK
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    # 3. 赋予Gradle Wrapper执行权限（重要！）
+    - name: Grant execute permission for gradlew
+      run: chmod +x ./gradlew
+
+    # 4. 构建调试版APK
+    - name: Build with Gradle (Debug)
+      run: ./gradlew assembleDebug
+
+    # 5. 将构建好的APK文件上传为工作流产物，便于下载
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug-apk
+        path: |
+          **/build/outputs/apk/debug/*.apk
+          **/build/outputs/apk/debug/output-metadata.json
